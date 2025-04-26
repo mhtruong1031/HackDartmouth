@@ -9,13 +9,16 @@ import cv2
 
 class Pipeline:
     def __init__(self):
-        pass
+        self.client = genai.Client(api_key=API_KEY)
+
+        class_filters = {
+            "Push-up"
+        }
 
     def run(self, video_path: str):
         mp_output          = self.video_to_landmarks(video_path)
         classification     = self.identify_exercise()
-        filtered_mp_output = self.filter_mp(mp_output)
-        class_cut_output   = self.filter_class(filtered_mp_output, classification)
+        class_cut_output   = self.filter_class(mp_output, classification)
         isolated_rep       = self.__isolate_rep(class_cut_output)
     
     # returns list of frames with mp outputs
@@ -25,7 +28,7 @@ class Pipeline:
         mp_pose = mp.solutions.pose
         pose = mp_pose.Pose()
 
-        frames       = []
+        frames = []
 
         while cap.isOpened():
             ret, frame = cap.read()
@@ -81,6 +84,16 @@ class Pipeline:
             last_dist = dist
 
         return (start_i, end_i)
+
+    def identify_exercise(self, image_path: str) -> str:
+        image = Image.open(image_path)
+        response = self.client.models.generate_content(
+            model="gemini-2.0-flash",
+            config=types.GenerateContentConfig(
+                system_instruction="You can only respond with one of the following words: Push-up, Sit-up, Squat"),
+            contents=[image, "What exercise is this?"]
+        )
+        return response.text
 
     # Returns the eclidiean distance between 2 frames
     # res_1/res_2 - result object from Pose().process()
