@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FormFix - Live Analysis</title>
+    <!-- Add Poppins font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;  /* Added to center vertically */
+            font-family: 'Poppins', Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;  /* Light gray background */
+            min-height: 100vh;
+            margin: 0;
+        }
+        .content-container {
+            background-color: #ffffff;
+            padding: 50px;  /* Increased padding */
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;  /* Remove top margin since we're using justify-content: center */
+            width: 640px;  /* Increased to accommodate video */
+            transition: all 0.3s ease;
+        }
+        .content-container.collapsed {
+            width: 400px;
+        }
+        .back-button {
+            align-self: flex-start;  /* Keep back button aligned to the left */
+            margin-bottom: 40px;
+            padding: 6px 12px;
+            color: #6b28e0;
+            text-decoration: none;
+            border-radius: 4px;
+            border: 2px solid #6b28e0;
+            background: transparent;
+            box-shadow: 0 2px 8px rgba(107, 40, 224, 0.1);
+            transition: all 0.3s ease;
+            font-family: 'Poppins', Arial, sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+        }
+        .back-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(107, 40, 224, 0.2);
+            background: rgba(107, 40, 224, 0.05);
+        }
+        h1 {
+            margin-bottom: 40px;
+            text-align: center;  /* Center the heading */
+            width: 100%;        /* Ensure full width */
+        }
+        #videoContainer {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+            max-height: 480px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        #videoContainer.hidden {
+            max-height: 0;
+            margin-bottom: 0;
+        }
+        #video {
+            width: 100%;
+            border-radius: 8px;
+            background-color: #000;
+            transition: all 0.3s ease;
+        }
+        .camera-status {
+            text-align: center;
+            color: #666;
+            margin: 10px 0;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .control-button {
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #9b6bff 0%, #6b28e0 100%);
+            box-shadow: 0 4px 15px rgba(107, 40, 224, 0.2);
+            transition: all 0.3s ease;
+            font-family: 'Poppins', Arial, sans-serif;
+            font-weight: 500;
+        }
+        .control-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(107, 40, 224, 0.3);
+        }
+        .control-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #6b28e0;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        .back-button {
+            margin-top: 40px; /* Add space below logo */
+        }
+    </style>
+</head>
+<body>
+    <div class="content-container" id="container">
+        <a href="/" class="logo">FormFix</a>
+        <h1>Live Video</h1>
+        <div id="videoContainer">
+            <video id="video" autoplay playsinline></video>
+            <div class="camera-status" id="status">Initializing camera...</div>
+            <div class="error-message" id="error"></div>
+        </div>
+        <button id="toggleButton" class="control-button">Stop Camera</button>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const toggleButton = document.getElementById('toggleButton');
+        const status = document.getElementById('status');
+        const error = document.getElementById('error');
+        const videoContainer = document.getElementById('videoContainer');
+        const container = document.getElementById('container');
+        let stream = null;
+        let isActive = true;
+
+        async function startCamera() {
+            try {
+                error.textContent = '';
+                status.textContent = 'Accessing camera...';
+                
+                stream = await navigator.mediaDevices.getUserMedia({
+                    video: {
+                        width: { ideal: 1280 },
+                        height: { ideal: 720 }
+                    }
+                });
+                
+                video.srcObject = stream;
+                status.textContent = 'Camera is active';
+                videoContainer.classList.remove('hidden');
+                container.classList.remove('collapsed');
+                toggleButton.textContent = 'Stop Camera';
+                isActive = true;
+            } catch (err) {
+                error.textContent = 'Error accessing camera: ' + err.message;
+                status.textContent = '';
+                console.error('Error:', err);
+            }
+        }
+
+        function stopCamera() {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+                video.srcObject = null;
+                status.textContent = 'Camera stopped';
+                videoContainer.classList.add('hidden');
+                container.classList.add('collapsed');
+                toggleButton.textContent = 'Start Camera';
+                isActive = false;
+            }
+        }
+
+        toggleButton.addEventListener('click', () => {
+            if (isActive) {
+                stopCamera();
+            } else {
+                startCamera();
+            }
+        });
+
+        // Start camera automatically when page loads
+        startCamera();
+
+        // Clean up when the page is closed
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
+</html> 

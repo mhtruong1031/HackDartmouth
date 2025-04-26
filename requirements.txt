@@ -1,0 +1,7 @@
+mediapipe
+numpy
+opencv-python<4.6
+requests>=2.31,<3
+rerun-sdk
+google
+PIL

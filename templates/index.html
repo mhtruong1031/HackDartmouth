@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FormFix - Dashboard</title>
+    <!-- Add Poppins font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <!-- If you have any local static files, reference them like this: -->
+    <!-- <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}"> -->
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Poppins', Arial, sans-serif;
+            background-color: #f0f0f0;  /* Light gray background */
+        }
+        .button-container {
+            text-align: center;
+            background-color: #ffffff;  /* White container */
+            padding: 50px;  /* Increased padding */
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            margin-top: 40px; /* Add space below logo */
+        }
+        h1 {
+            margin-bottom: 40px;  /* Increased margin */
+        }
+        .button {
+            display: inline-block;
+            padding: 15px 30px;
+            font-size: 18px;
+            margin: 20px;  /* Increased margin between buttons */
+            cursor: pointer;
+            text-decoration: none;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            background: linear-gradient(135deg, #9b6bff 0%, #6b28e0 100%);
+            box-shadow: 0 4px 15px rgba(107, 40, 224, 0.2);
+            transition: all 0.3s ease;
+            font-family: 'Poppins', Arial, sans-serif;
+            font-weight: 500;
+        }
+        .button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(107, 40, 224, 0.3);
+        }
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #6b28e0;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+    </style>
+</head>
+<body>
+    <a href="/" class="logo">FormFix</a>
+    <div class="button-container">
+        <h1>Choose your option</h1>
+        <a href="/upload" class="button">Upload</a>
+        <a href="/live" class="button">Live</a>
+    </div>
+</body>
+</html> 
