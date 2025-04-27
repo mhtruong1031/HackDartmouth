@@ -60,6 +60,23 @@ def upload():
             return f'File uploaded successfully: {filename}'
     return render_template('upload.html', data={'message':response})
 
+@app.route('/static/latest_video')
+def latest_video():
+    try:
+        files = [
+            f for f in os.listdir(app.config['UPLOAD_FOLDER'])
+            if f.lower().endswith(('.mp4', '.mpeg', '.mov', '.avi', '.wmv', '.webm', '.mkv'))
+        ]
+        if not files:
+            return {'filename': None}
+        
+        # Sort by most recent modified time
+        files.sort(key=lambda x: os.path.getmtime(os.path.join(app.config['UPLOAD_FOLDER'], x)), reverse=True)
+        latest = files[0]
+        return {'filename': latest}
+    except Exception as e:
+        return {'filename': None}
+    
 @app.route('/live')
 def live():
     return render_template('live.html')
