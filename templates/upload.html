@@ -121,6 +121,50 @@
         .back-button {
             margin-top: 40px; /* Add space below logo */
         }
+        /* Overlay for upload success message */
+        .upload-success-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(107, 40, 224, 0.95);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            font-size: 2.5rem;
+            font-family: 'Poppins', Arial, sans-serif;
+            font-weight: 600;
+            letter-spacing: 1px;
+            text-align: center;
+            transition: opacity 0.3s;
+        }
+        .upload-success-overlay.hidden {
+            display: none;
+        }
+        /* New hello box style */
+        .hello-box {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #fff;
+            color: #6b28e0;
+            border-radius: 10px;
+            box-shadow: 0 4px 20px rgba(107, 40, 224, 0.15);
+            padding: 40px 60px;
+            font-size: 2.2rem;
+            font-family: 'Poppins', Arial, sans-serif;
+            font-weight: 600;
+            z-index: 10000;
+            display: none;
+            text-align: center;
+        }
+        .hello-box.visible {
+            display: block;
+        }
     </style>
   </head>
   <body>
@@ -135,11 +179,21 @@
         </form>
     </div>
 
+    <div class="upload-success-overlay hidden" id="upload-success-overlay">
+        Video uploaded successfully!
+    </div>
+    <div class="hello-box" id="hello-box">
+        <a href="{{ data.message }}">
+    </div>
+
     <script>
         const fileInput = document.getElementById('file-input');
         const fileName = document.getElementById('file-name');
         const submitButton = document.getElementById('submit-button');
         const contentContainer = document.getElementById('container');
+        const uploadForm = document.getElementById('upload-form');
+        const uploadSuccessOverlay = document.getElementById('upload-success-overlay');
+        const helloBox = document.getElementById('hello-box');
 
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -152,6 +206,41 @@
                 submitButton.classList.remove('visible');
                 contentContainer.classList.remove('expanded');
             }
+        });
+
+        uploadForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            // Prepare form data
+            const formData = new FormData(uploadForm);
+
+            // Send AJAX request
+            fetch(window.location.pathname, {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                if (!response.ok) throw new Error('Upload failed');
+                return response.text();
+            })
+            .then(data => {
+                // Show overlay
+                uploadSuccessOverlay.classList.remove('hidden');
+                // Optionally, you can hide the form container
+                contentContainer.style.display = 'none';
+
+                // After 2 seconds, hide overlay and show hello box
+                setTimeout(() => {
+                    uploadSuccessOverlay.classList.add('hidden');
+                    helloBox.classList.add('visible');
+                }, 2000);
+            })
+            .catch(err => {
+                // Optionally, show an error overlay or message
+                uploadSuccessOverlay.textContent = "Upload failed. Please try again.";
+                uploadSuccessOverlay.classList.remove('hidden');
+                contentContainer.style.display = 'none';
+            });
         });
     </script>
   </body>

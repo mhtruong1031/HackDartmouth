@@ -1,11 +1,14 @@
 from flask import Flask, render_template, request, redirect, url_for
 from werkzeug.utils import secure_filename
+from pipeline import Pipeline
 import os
 import mimetypes
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static'
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size
+
+pl = Pipeline()
 
 # List of allowed video MIME types
 ALLOWED_EXTENSIONS = {
@@ -52,9 +55,10 @@ def upload():
             return 'No selected file'
         if file:
             filename = secure_filename(file.filename)
-            file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+            file.save('temp.mp4')
+            response = pl.run('static/temp.mp4')
             return f'File uploaded successfully: {filename}'
-    return render_template('upload.html')
+    return render_template('upload.html', data={'message':response})
 
 @app.route('/live')
 def live():

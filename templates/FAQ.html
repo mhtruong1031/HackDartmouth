@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FormFix - FAQ</title>
+    <!-- Add Poppins font -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;  /* Added to center vertically */
+            font-family: 'Poppins', Arial, sans-serif;
+            padding: 20px;
+            background-color: #f0f0f0;  /* Light gray background */
+            min-height: 100vh;
+            margin: 0;
+        }
+        .content-container {
+            background-color: #ffffff;
+            padding: 50px;  /* Increased padding */
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 0;  /* Remove top margin since we're using justify-content: center */
+            width: 640px;  /* Increased to accommodate video */
+            transition: all 0.3s ease;
+        }
+        .content-container.collapsed {
+            width: 400px;
+        }
+        .back-button {
+            align-self: flex-start;  /* Keep back button aligned to the left */
+            margin-bottom: 40px;
+            padding: 6px 12px;
+            color: #6b28e0;
+            text-decoration: none;
+            border-radius: 4px;
+            border: 2px solid #6b28e0;
+            background: transparent;
+            box-shadow: 0 2px 8px rgba(107, 40, 224, 0.1);
+            transition: all 0.3s ease;
+            font-family: 'Poppins', Arial, sans-serif;
+            font-weight: 500;
+            font-size: 12px;
+        }
+        .back-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 12px rgba(107, 40, 224, 0.2);
+            background: rgba(107, 40, 224, 0.05);
+        }
+        h1 {
+            margin-bottom: 40px;
+            text-align: center;  /* Center the heading */
+            width: 100%;        /* Ensure full width */
+        }
+        #videoContainer {
+            position: relative;
+            width: 100%;
+            margin-bottom: 20px;
+            max-height: 480px;
+            overflow: hidden;
+            transition: all 0.3s ease;
+        }
+        #videoContainer.hidden {
+            max-height: 0;
+            margin-bottom: 0;
+        }
+        #video {
+            width: 100%;
+            border-radius: 8px;
+            background-color: #000;
+            transition: all 0.3s ease;
+        }
+        .camera-status {
+            text-align: center;
+            color: #666;
+            margin: 10px 0;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        .error-message {
+            color: #e74c3c;
+            text-align: center;
+            margin: 10px 0;
+            font-size: 14px;
+        }
+        .controls {
+            display: flex;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        .control-button {
+            padding: 10px 20px;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            background: linear-gradient(135deg, #9b6bff 0%, #6b28e0 100%);
+            box-shadow: 0 4px 15px rgba(107, 40, 224, 0.2);
+            transition: all 0.3s ease;
+            font-family: 'Poppins', Arial, sans-serif;
+            font-weight: 500;
+        }
+        .control-button:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 20px rgba(107, 40, 224, 0.3);
+        }
+        .control-button:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .logo {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            color: #6b28e0;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        .logo:hover {
+            transform: scale(1.05);
+        }
+        .back-button {
+            margin-top: 40px; /* Add space below logo */
+        }
+    </style>
+</head>
+<body>
+    <div class="content-container" id="container">
+        <a href="/" class="logo">FormFix</a>
+        <h1>FAQ</h1>
+        <div class="faq-list" style="width: 100%;">
+            <details>
+                <summary class="faq-question"><strong>Why make FormFix?</strong></summary>
+                <p>
+                    We were inspired by Tony Stark's Jarvis technology of interacting with software through waving around in the air. From there, we looked for a cool use of mediapipe and ended up with FormFix.
+                </p>
+            </details>
+            <details>
+                <summary class="faq-question"><strong>How do I use the live camera feature?</strong></summary>
+                <p>
+                    Go to the "Live Video" page and allow camera access when prompted. The app will display your live video feed and analyze your form in real time. You can start or stop the camera at any time using the provided button.
+                </p>
+            </details>
+            <details>
+                <summary class="faq-question"><strong>Why does nothing in the navigation bar work?</strong></summary>
+                <p>
+                    Reading things makes you settle. Drop and give me 50. &#128127
+                </p>
+            </details>
+        </div>
+        <style>
+            .faq-list {
+                text-align: left;
+            }
+            .faq-list details {
+                margin-bottom: 18px;
+            }
+            .faq-question {
+                text-align: left;
+                cursor: pointer;
+                padding: 8px 0;
+                border-radius: 5px;
+                transition: background 0.2s, color 0.2s;
+                color: #222;
+            }
+            .faq-question:hover {
+                background: #f3eaff;
+                color: #6b28e0;
+            }
+        </style>
+        </div>
+    </div>
+
+    <script>
+        const video = document.getElementById('video');
+        const toggleButton = document.getElementById('toggleButton');
+        const status = document.getElementById('status');
+        const error = document.getElementById('error');
+        const videoContainer = document.getElementById('videoContainer');
+        const container = document.getElementById('container');
+        let stream = null;
+        let isActive = true;
+
+
+        // Clean up when the page is closed
+        window.addEventListener('beforeunload', () => {
+            if (stream) {
+                stream.getTracks().forEach(track => track.stop());
+            }
+        });
+    </script>
+</body>
+</html> 

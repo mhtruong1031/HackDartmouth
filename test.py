@@ -2,4 +2,4 @@ import pipeline
 
 pl = pipeline.Pipeline()
 
-pl.run('test.mp4')
+pl.speak(pl.run('squat.mp4'))
