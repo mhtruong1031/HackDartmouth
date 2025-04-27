@@ -144,27 +144,6 @@
         .upload-success-overlay.hidden {
             display: none;
         }
-        /* New hello box style */
-        .hello-box {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: #fff;
-            color: #6b28e0;
-            border-radius: 10px;
-            box-shadow: 0 4px 20px rgba(107, 40, 224, 0.15);
-            padding: 40px 60px;
-            font-size: 2.2rem;
-            font-family: 'Poppins', Arial, sans-serif;
-            font-weight: 600;
-            z-index: 10000;
-            display: none;
-            text-align: center;
-        }
-        .hello-box.visible {
-            display: block;
-        }
     </style>
   </head>
   <body>
@@ -190,7 +169,6 @@
         const contentContainer = document.getElementById('container');
         const uploadForm = document.getElementById('upload-form');
         const uploadSuccessOverlay = document.getElementById('upload-success-overlay');
-        const helloBox = document.getElementById('hello-box');
 
         fileInput.addEventListener('change', function(e) {
             const file = e.target.files[0];
@@ -226,11 +204,10 @@
                 // Optionally, you can hide the form container
                 contentContainer.style.display = 'none';
 
-                // After 2 seconds, hide overlay and show hello box
+                // After 1 second, redirect to Analysis.html
                 setTimeout(() => {
-                    uploadSuccessOverlay.classList.add('hidden');
-                    helloBox.classList.add('visible');
-                }, 2000);
+                    window.location.href = "/analysis";
+                }, 1000);
             })
             .catch(err => {
                 // Optionally, show an error overlay or message

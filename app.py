@@ -4,7 +4,7 @@ from pipeline import Pipeline
 import os
 import mimetypes
 
-app = Flask(__name__)
+app = Flask(__name__, static_folder="static", static_url_path="/static")
 app.config['UPLOAD_FOLDER'] = 'static'
 app.config['MAX_CONTENT_LENGTH'] = 100 * 1024 * 1024  # 100MB max file size
 
@@ -55,10 +55,14 @@ def upload():
             return 'No selected file'
         if file:
             filename = secure_filename(file.filename)
-            file.save('temp.mp4')
+            file.save('static/temp.mp4')
             response = pl.run('static/temp.mp4')
+
+            with open('temp.txt', 'w') as f:
+                f.write(response)
+
             return f'File uploaded successfully: {filename}'
-    return render_template('upload.html', data={'message':response})
+    return render_template('upload.html')
 
 @app.route('/static/latest_video')
 def latest_video():
@@ -73,6 +77,7 @@ def latest_video():
         # Sort by most recent modified time
         files.sort(key=lambda x: os.path.getmtime(os.path.join(app.config['UPLOAD_FOLDER'], x)), reverse=True)
         latest = files[0]
+        print('balls')
         return {'filename': latest}
     except Exception as e:
         return {'filename': None}
@@ -80,6 +85,17 @@ def latest_video():
 @app.route('/live')
 def live():
     return render_template('live.html')
+
+@app.route('/analysis')
+def analysis():
+    with open('temp.txt', 'r') as f:
+        m = f.readline().strip()
+
+    return render_template('Analysis.html', data = {'message':m})
+
+@app.route('/faq')  
+def faq():
+    return render_template('FAQ.html')
 
 if __name__ == '__main__':
     app.run(debug=True) 

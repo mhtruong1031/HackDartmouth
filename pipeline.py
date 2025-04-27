@@ -1,16 +1,20 @@
 from google import genai
 from google.genai import types
+from openai import OpenAI
 from PIL import Image
-from config import API_KEY
+from config import API_KEY, N_API_KEY
 
 import mediapipe as mp
 import numpy as np
 import cv2
 import pyttsx3
+import requests
+import subprocess
+
 
 class Pipeline:
     def __init__(self):
-        self.client = genai.Client(api_key=API_KEY)
+        self.client   = genai.Client(api_key=API_KEY)
 
         self.angle_nodes = [
             (16, 14, 12),
@@ -33,23 +37,28 @@ class Pipeline:
         }
 
         self.engine = pyttsx3.init()
-        self.engine.setProperty('rate', 160) # speaking speed
+        self.engine.setProperty('rate', 170) # speaking speed
 
     def run(self, video_path: str):
+        print("RUNNING PIPELINE")
         mp_output           = self.video_to_landmarks(video_path, True)
         self.classification = self.identify_exercise('frame.jpg')
         standard            = self.gold_standard[self.classification]
         user_isolated_rep   = self.isolate_rep(mp_output, standard[0])
 
         self.vectorized_angle_data = self.error_calculation(user_isolated_rep, standard, self.classification)
-        return self.generate_improvement()
+        message = self.generate_improvement()
+        self.speak(message)
+
+        return message
 
     def speak(self, text):
+        print(text)
         self.engine.say(text)
         self.engine.runAndWait()
 
     # returns list of frames with mp outputs
-    def video_to_landmarks(self, video_path: str, save: bool = False):
+    def video_to_landmarks(self, video_path: str, save: bool = False, golden_landmarks: list = None):
         cap = cv2.VideoCapture(video_path)
 
         mp_pose = mp.solutions.pose
@@ -58,6 +67,7 @@ class Pipeline:
 
         first_frame = True
         frames = []
+        out = None
 
         # If saving, setup VideoWriter
         if save:
@@ -65,7 +75,9 @@ class Pipeline:
             height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
             fps = cap.get(cv2.CAP_PROP_FPS)
             fourcc = cv2.VideoWriter_fourcc(*'mp4v')
-            out = cv2.VideoWriter("output_overlay.mp4", fourcc, fps, (width, height))
+            out = cv2.VideoWriter("static/output_overlay.mp4", fourcc, fps, (width, height))
+
+        frame_idx = 0
 
         while cap.isOpened():
             ret, frame = cap.read()
@@ -80,22 +92,50 @@ class Pipeline:
             result = pose.process(frame_rgb)
             frames.append(result)
 
-            if save and result.pose_landmarks:
-                mp_drawing.draw_landmarks(
-                    frame,
-                    result.pose_landmarks,
-                    mp_pose.POSE_CONNECTIONS,
-                    landmark_drawing_spec=mp_drawing.DrawingSpec(color=(0,255,0), thickness=2, circle_radius=2),
-                    connection_drawing_spec=mp_drawing.DrawingSpec(color=(255,0,0), thickness=2)
-                )
-
             if save:
-                out.write(frame)
+                frame_draw = frame.copy()  # ✨ Important: copy before drawing
+
+                # Draw user pose
+                if result.pose_landmarks:
+                    mp_drawing.draw_landmarks(
+                        frame_draw,
+                        result.pose_landmarks,
+                        mp_pose.POSE_CONNECTIONS,
+                        landmark_drawing_spec=mp_drawing.DrawingSpec(color=(0,255,0), thickness=2, circle_radius=2),
+                        connection_drawing_spec=mp_drawing.DrawingSpec(color=(0,255,0), thickness=2)
+                    )
+
+                # Draw golden pose overlay if provided
+                if golden_landmarks and frame_idx < len(golden_landmarks):
+                    golden_pose = golden_landmarks[frame_idx]
+                    if golden_pose:
+                        overlay = frame_draw.copy()
+                        mp_drawing.draw_landmarks(
+                            overlay,
+                            golden_pose,
+                            mp_pose.POSE_CONNECTIONS,
+                            landmark_drawing_spec=mp_drawing.DrawingSpec(color=(255,0,0), thickness=1, circle_radius=1),
+                            connection_drawing_spec=mp_drawing.DrawingSpec(color=(255,0,0), thickness=1)
+                        )
+                        alpha = 0.5
+                        frame_draw = cv2.addWeighted(overlay, alpha, frame_draw, 1 - alpha, 0)
+
+                out.write(frame_draw)  # ✨ Write the modified, drawn-on frame
+
+            frame_idx += 1
 
         cap.release()
-        if save:
+        pose.close()
+
+        if out:
             out.release()
             print("Saved overlay video as output_overlay.mp4")
+
+        subprocess.run([
+            "ffmpeg", "-y", "-i", "static/output_overlay.mp4",
+            "-vcodec", "libx264", "-crf", "23",
+            "static/output_overlay_fixed.mp4"
+        ])
 
         return frames
 
@@ -232,6 +272,7 @@ class Pipeline:
             contents=["Please analyze the user's form and provide improvement suggestions."]
         )
         return improvement + response.text.strip()
+
 
     # Returns the eclidiean distance between 2 frames
     # res_1/res_2 - result object from Pose().process()
